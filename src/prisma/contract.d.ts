@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'0b3c2a36e7949fe3301221a210a29d90f62ec1519c956b87068e1bb559ea74fe'>;
+  StorageHashBase<'317078d90a41a40b94350c5765d7cdf1a98334fa4fbf988ed7bd27e6803c80b8'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -249,8 +249,12 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 
 export type FieldOutputTypes = {
   readonly public: {
+    readonly Category: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly name: CodecTypes['pg/text@1']['output'];
+    };
     readonly Product: {
-      readonly category: CodecTypes['pg/text@1']['output'];
+      readonly categoryId: CodecTypes['pg/int4@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly image: CodecTypes['pg/text@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
@@ -260,8 +264,12 @@ export type FieldOutputTypes = {
 };
 export type FieldInputTypes = {
   readonly public: {
+    readonly Category: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly name: CodecTypes['pg/text@1']['input'];
+    };
     readonly Product: {
-      readonly category: CodecTypes['pg/text@1']['input'];
+      readonly categoryId: CodecTypes['pg/int4@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly image: CodecTypes['pg/text@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
@@ -271,8 +279,12 @@ export type FieldInputTypes = {
 };
 export type StorageColumnTypes = {
   readonly public: {
+    readonly Category: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly name: CodecTypes['pg/text@1']['output'];
+    };
     readonly Product: {
-      readonly category: CodecTypes['pg/text@1']['output'];
+      readonly categoryId: CodecTypes['pg/int4@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly image: CodecTypes['pg/text@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'];
@@ -282,8 +294,12 @@ export type StorageColumnTypes = {
 };
 export type StorageColumnInputTypes = {
   readonly public: {
+    readonly Category: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly name: CodecTypes['pg/text@1']['input'];
+    };
     readonly Product: {
-      readonly category: CodecTypes['pg/text@1']['input'];
+      readonly categoryId: CodecTypes['pg/int4@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly image: CodecTypes['pg/text@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
@@ -293,18 +309,26 @@ export type StorageColumnInputTypes = {
 };
 
 export namespace Models {
+  export type public_Category = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    products: public_Product[];
+    readonly [RelationKeys]?: 'products';
+  };
   export type public_Product = {
-    category: CodecTypes['pg/text@1']['output'];
+    categoryId: CodecTypes['pg/int4@1']['output'];
     id: CodecTypes['pg/int4@1']['output'];
     image: CodecTypes['pg/text@1']['output'];
     name: CodecTypes['pg/text@1']['output'];
     price: CodecTypes['pg/int4@1']['output'];
-    readonly [RelationKeys]?: never;
+    category: public_Category;
+    readonly [RelationKeys]?: 'category';
   };
 }
 
 export declare const models: {
   public: {
+    Category: Models.public_Category;
     Product: Models.public_Product;
   };
 };
@@ -327,11 +351,33 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
-            readonly Product: {
+            readonly Category: {
               columns: {
-                readonly category: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly name: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['name'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly Product: {
+              columns: {
+                readonly categoryId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
                 };
                 readonly id: {
@@ -365,8 +411,28 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['name'] }];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Product_categoryId_idx_15c304f2';
+                  readonly prefix: 'Product_categoryId_idx';
+                  readonly columns: readonly ['categoryId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Product';
+                    readonly columns: readonly ['categoryId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Category';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
           };
         };
@@ -379,17 +445,51 @@ type ContractBase = Omit<
   readonly target: 'postgres';
   readonly targetFamily: 'sql';
   readonly roots: {
+    readonly Category: { readonly namespace: 'public' & NamespaceId; readonly model: 'Category' };
     readonly Product: { readonly namespace: 'public' & NamespaceId; readonly model: 'Product' };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
-          readonly Product: {
+          readonly Category: {
             readonly fields: {
-              readonly category: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly name: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly products: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Product';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['categoryId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Category';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly name: { readonly column: 'name' };
+              };
+            };
+          };
+          readonly Product: {
+            readonly fields: {
+              readonly categoryId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly id: {
                 readonly nullable: false;
@@ -408,12 +508,25 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
             };
-            readonly relations: Record<string, never>;
+            readonly relations: {
+              readonly category: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Category';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['categoryId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
             readonly storage: {
               readonly table: 'Product';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly category: { readonly column: 'category' };
+                readonly categoryId: { readonly column: 'categoryId' };
                 readonly id: { readonly column: 'id' };
                 readonly image: { readonly column: 'image' };
                 readonly name: { readonly column: 'name' };

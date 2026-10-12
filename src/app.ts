@@ -2,7 +2,7 @@ import express from 'express'
 import { createProductRouter } from './transport/routers/product.js'
 import { createProductHandler } from './transport/handlers/product.js';
 import { createProductRepository } from './repositories/product.js';
-import { createProductService } from './services/product.js';
+import { createProductService } from './services/product/product.js';
 import { db } from './prisma/db.js';
 //const express = require('express');
 
