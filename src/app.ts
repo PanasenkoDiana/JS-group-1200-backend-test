@@ -10,6 +10,7 @@ import { signAccessToken } from "./lib/jwt.js";
 import { hashPassword, verifyPassword } from "./lib/password.js";
 import { createAuthHandlers } from "./transport/handlers/auth.js";
 import { createAuthRouter } from "./transport/routers/auth.js";
+import cors from 'cors';
 //const express = require('express');
 
 const app = express();
@@ -27,11 +28,13 @@ const authService = createAuthService(
 const authHandlers = createAuthHandlers(authService);
 const authRouter = createAuthRouter(authHandlers);
 
+app.use(cors({ origin: 'http://localhost:5173' }));
 
 // app.use(express.json()) - встроенный middleware, который позволяет спарсить json обьект в js обьект
 app.use(express.json())
 app.use('/products', productRouter)
 app.use("/auth", authRouter);
+
 // products    ->  router.get('/', getProducts)
 // products/1  ->  router.get('/:id', getProductById)
 
