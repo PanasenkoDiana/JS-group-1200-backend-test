@@ -6,10 +6,15 @@ import { createProductService } from './services/product/product.js';
 import { db } from './prisma/db.js';
 import { createUserRepository } from "./repositories/user.js";
 import { createAuthService } from "./services/auth/auth.js";
-import { signAccessToken } from "./lib/jwt.js";
 import { hashPassword, verifyPassword } from "./lib/password.js";
 import { createAuthHandlers } from "./transport/handlers/auth.js";
 import { createAuthRouter } from "./transport/routers/auth.js";
+import cookieParser from "cookie-parser";
+import { createRequireAuth } from "./transport/middlewares/require-auth.js";
+import {
+  signAccessToken, signRefreshToken,
+  verifyAccessToken, verifyRefreshToken,
+} from "./lib/jwt.js";
 import cors from 'cors';
 //const express = require('express');
 
@@ -19,19 +24,23 @@ const productService = createProductService(productRepository)
 const productHandlers = createProductHandler(productService)
 const productRouter = createProductRouter(productHandlers)
 
+
 const userRepository = createUserRepository(db);
 const authService = createAuthService(
   userRepository,
   { hash: hashPassword, verify: verifyPassword },
-  { signAccessToken },
+  { signAccessToken, signRefreshToken },
+  { verifyRefreshToken },
 );
 const authHandlers = createAuthHandlers(authService);
-const authRouter = createAuthRouter(authHandlers);
+const requireAuth = createRequireAuth(verifyAccessToken);
+const authRouter = createAuthRouter(authHandlers, requireAuth);
 
 app.use(cors({ origin: 'http://localhost:5173' }));
 
 // app.use(express.json()) - встроенный middleware, который позволяет спарсить json обьект в js обьект
 app.use(express.json())
+app.use(cookieParser());
 app.use('/products', productRouter)
 app.use("/auth", authRouter);
 

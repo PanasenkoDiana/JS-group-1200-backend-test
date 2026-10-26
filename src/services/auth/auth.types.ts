@@ -15,13 +15,23 @@ export interface PasswordHasher {
 // Интерфейс для подписания токенов доступа
 export interface TokenSigner {
   signAccessToken(userId: number): string;
+  signRefreshToken(userId: number): string;
+}
+
+export interface TokenVerifier {
+  verifyRefreshToken(token: string): number;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
 }
 
 // Интерфейс сервиса авторизации (регистрация и вход)
+
 export interface AuthService {
   register(input: AuthInput): Promise<PublicUser>;
-  login(input: AuthInput): Promise<{
-    user: PublicUser;
-    accessToken: string;
-  }>;
+  login(input: AuthInput): Promise<{ user: PublicUser } & AuthTokens>;
+  refresh(refreshToken: string): Promise<AuthTokens>;
+  me(userId: number): Promise<PublicUser>;
 }
